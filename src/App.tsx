@@ -5,6 +5,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
+import Clusters from "./pages/Clusters";
+import Resources from "./pages/Resources";
 import NotFound from "./pages/NotFound";
 import React from "react";
 
@@ -17,6 +19,8 @@ const App = () => (
         <TooltipProvider>
           <Routes>
             <Route path="/" element={<Index />} />
+            <Route path="/clusters" element={<Clusters />} />
+            <Route path="/resources" element={<Resources />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
