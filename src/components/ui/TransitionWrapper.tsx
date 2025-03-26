@@ -9,6 +9,7 @@ type TransitionProps = {
   duration?: number;
   animation?: 'fade' | 'slide-up' | 'slide-down' | 'slide-right' | 'scale' | 'none';
   once?: boolean;
+  onClick?: () => void; // Added onClick handler
 };
 
 export const TransitionWrapper = ({
@@ -18,6 +19,7 @@ export const TransitionWrapper = ({
   duration = 300,
   animation = 'fade',
   once = true,
+  onClick, // Add onClick handler
 }: TransitionProps) => {
   const [isVisible, setIsVisible] = useState(false);
   const [hasAnimated, setHasAnimated] = useState(false);
@@ -64,6 +66,7 @@ export const TransitionWrapper = ({
         className
       )}
       style={{ animationDuration: `${duration}ms`, transitionDuration: `${duration}ms` }}
+      onClick={onClick}
     >
       {children}
     </div>
