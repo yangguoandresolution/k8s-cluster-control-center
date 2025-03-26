@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import Header from '../components/layout/Header';
 import Sidebar from '../components/layout/Sidebar';
@@ -10,6 +9,9 @@ import { Button } from '@/components/ui/button';
 import TransitionWrapper from '@/components/ui/TransitionWrapper';
 import { Network, RefreshCw, PlusCircle, Server, Database, Cpu } from 'lucide-react';
 
+// Define the proper type for cluster status
+type ClusterStatus = 'healthy' | 'warning' | 'critical' | 'neutral' | 'pending';
+
 // Sample cluster data
 const clusterData = [
   {
@@ -17,7 +19,7 @@ const clusterData = [
     name: 'Production Cluster',
     region: 'us-west-1',
     nodes: 5,
-    status: 'healthy',
+    status: 'healthy' as ClusterStatus,
     version: 'v1.26.3',
     uptime: '99.98%',
     pods: 78,
@@ -28,7 +30,7 @@ const clusterData = [
     name: 'Staging Cluster',
     region: 'eu-central-1',
     nodes: 3,
-    status: 'warning',
+    status: 'warning' as ClusterStatus,
     version: 'v1.25.8',
     uptime: '99.91%',
     pods: 42,
@@ -39,7 +41,7 @@ const clusterData = [
     name: 'Development Cluster',
     region: 'ap-southeast-1',
     nodes: 2,
-    status: 'healthy',
+    status: 'healthy' as ClusterStatus,
     version: 'v1.27.1',
     uptime: '99.95%',
     pods: 24,
@@ -50,7 +52,7 @@ const clusterData = [
     name: 'Testing Cluster',
     region: 'us-east-1',
     nodes: 1,
-    status: 'error',
+    status: 'critical' as ClusterStatus,
     version: 'v1.24.12',
     uptime: '95.32%',
     pods: 18,

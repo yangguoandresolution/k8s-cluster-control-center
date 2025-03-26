@@ -154,11 +154,10 @@ const Resources = () => {
                   <MetricCard
                     title={key.charAt(0).toUpperCase() + key.slice(1)}
                     value={data.current}
-                    total={data.total}
-                    unit={data.unit}
+                    subtitle={`of ${data.total} ${data.unit}`}
                     icon={getResourceIcon(key)}
                     onClick={() => setSelectedResource(key)}
-                    isActive={selectedResource === key}
+                    className={selectedResource === key ? 'ring-2 ring-primary ring-opacity-50' : ''}
                   />
                 </TransitionWrapper>
               ))}
@@ -184,7 +183,10 @@ const Resources = () => {
                         name: resourcesData[selectedResource as keyof typeof resourcesData].trendLabels[index],
                         value
                       }))}
-                      color={getResourceColor(selectedResource)}
+                      dataKey="value"
+                      stroke={`var(--k8s-${getResourceColor(selectedResource)})`}
+                      gradientFrom={`rgba(var(--k8s-${getResourceColor(selectedResource)}-rgb), 0.4)`}
+                      gradientTo={`rgba(var(--k8s-${getResourceColor(selectedResource)}-rgb), 0.0)`}
                     />
                   </div>
                 </CardContent>

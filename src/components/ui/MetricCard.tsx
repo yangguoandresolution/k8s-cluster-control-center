@@ -13,6 +13,7 @@ type MetricCardProps = {
   };
   className?: string;
   children?: React.ReactNode;
+  onClick?: () => void; // Added onClick handler
 };
 
 export const MetricCard = ({
@@ -23,6 +24,7 @@ export const MetricCard = ({
   trend,
   className,
   children,
+  onClick, // Added onClick handler
 }: MetricCardProps) => {
   const getTrendColor = () => {
     if (!trend) return '';
@@ -80,7 +82,11 @@ export const MetricCard = ({
   };
 
   return (
-    <TransitionWrapper animation="slide-up" className={cn("neo-card p-5", className)}>
+    <TransitionWrapper 
+      animation="slide-up" 
+      className={cn("neo-card p-5", className, onClick ? "cursor-pointer" : "")}
+      onClick={onClick} // Use the onClick handler here
+    >
       <div className="flex items-start justify-between">
         <div>
           <h3 className="text-sm font-medium text-k8s-gray-500">{title}</h3>

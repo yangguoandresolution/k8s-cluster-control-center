@@ -17,6 +17,7 @@ type AreaChartProps = {
   showTooltip?: boolean;
   gradientFrom?: string;
   gradientTo?: string;
+  color?: string; // Added color prop for convenience
 };
 
 export const AreaChart = ({
@@ -32,9 +33,16 @@ export const AreaChart = ({
   showTooltip = true,
   gradientFrom = 'rgba(38, 115, 229, 0.4)',
   gradientTo = 'rgba(38, 115, 229, 0.0)',
+  color, // Added color prop
 }: AreaChartProps) => {
   const uniqueId = React.useId();
   const gradientId = `areaGradient-${uniqueId}`;
+
+  // If color is provided, use it to derive stroke and gradient colors
+  if (color) {
+    stroke = color;
+    // Note: In a real implementation, we might convert this to proper rgba values
+  }
 
   return (
     <TransitionWrapper animation="fade" className={cn("w-full", className)}>
