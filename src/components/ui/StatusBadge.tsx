@@ -1,5 +1,6 @@
 
 import { cn } from "@/lib/utils";
+import React from "react";
 
 type StatusBadgeProps = {
   status: 'healthy' | 'warning' | 'critical' | 'neutral' | 'pending';
@@ -7,6 +8,7 @@ type StatusBadgeProps = {
   className?: string;
   size?: 'sm' | 'md' | 'lg';
   animate?: boolean;
+  children?: React.ReactNode;
 };
 
 export const StatusBadge = ({
@@ -15,9 +17,10 @@ export const StatusBadge = ({
   className,
   size = 'md',
   animate = true,
+  children,
 }: StatusBadgeProps) => {
-  // Determine text based on status if not provided
-  const statusText = text || {
+  // Determine text based on status if not provided and if there are no children
+  const statusText = children || text || {
     healthy: 'Healthy',
     warning: 'Warning',
     critical: 'Critical',

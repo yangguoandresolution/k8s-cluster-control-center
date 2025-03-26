@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import PageLayout from '@/components/layout/PageLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/card';
+import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
 import TransitionWrapper from '@/components/ui/TransitionWrapper';
 import StatusBadge from '@/components/ui/StatusBadge';
 import { Plus, Filter, RefreshCw, MoreHorizontal, Edit, Trash2 } from 'lucide-react';
@@ -120,9 +120,7 @@ const Deployments = () => {
                       <TableCell>{deployment.namespace}</TableCell>
                       <TableCell>{deployment.replicas}</TableCell>
                       <TableCell>
-                        <StatusBadge status={deployment.status as any}>
-                          {deployment.status.charAt(0).toUpperCase() + deployment.status.slice(1)}
-                        </StatusBadge>
+                        <StatusBadge status={deployment.status as 'healthy' | 'warning' | 'critical' | 'neutral' | 'pending'} text={deployment.status.charAt(0).toUpperCase() + deployment.status.slice(1)} />
                       </TableCell>
                       <TableCell>{deployment.age}</TableCell>
                       <TableCell>{deployment.cluster}</TableCell>

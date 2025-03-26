@@ -3,226 +3,143 @@ import React, { useState } from 'react';
 import PageLayout from '@/components/layout/PageLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
-import StatusBadge from '@/components/ui/StatusBadge';
-import { Database, HardDrive, Plus, RefreshCw, Layers } from 'lucide-react';
 import TransitionWrapper from '@/components/ui/TransitionWrapper';
-import MetricCard from '@/components/ui/MetricCard';
+import StatusBadge from '@/components/ui/StatusBadge';
+import { Plus, Filter, RefreshCw, MoreHorizontal, Edit, Trash2 } from 'lucide-react';
 
 // Sample storage data
-const storageClasses = [
-  {
-    id: 'sc-1',
-    name: 'standard',
-    provisioner: 'kubernetes.io/gce-pd',
-    reclaimPolicy: 'Delete',
-    volumeBindingMode: 'Immediate',
-    isDefault: true,
-    age: '125d',
-  },
-  {
-    id: 'sc-2',
-    name: 'premium-rwo',
-    provisioner: 'kubernetes.io/gce-pd',
-    reclaimPolicy: 'Delete',
-    volumeBindingMode: 'Immediate',
-    isDefault: false,
-    age: '125d',
-  },
-  {
-    id: 'sc-3',
-    name: 'standard-rwx',
-    provisioner: 'kubernetes.io/nfs',
-    reclaimPolicy: 'Retain',
-    volumeBindingMode: 'Immediate',
-    isDefault: false,
-    age: '98d',
-  },
-];
-
-const persistentVolumes = [
+const persistentVolumesData = [
   {
     id: 'pv-1',
-    name: 'pv-data-001',
+    name: 'data-volume-1',
     capacity: '10Gi',
     accessModes: ['ReadWriteOnce'],
-    reclaimPolicy: 'Delete',
+    reclaimPolicy: 'Retain',
     status: 'healthy',
-    claim: 'default/postgres-data-claim',
+    claim: 'default/db-claim',
     storageClass: 'standard',
-    age: '5d',
+    age: '10d',
   },
   {
     id: 'pv-2',
-    name: 'pv-data-002',
-    capacity: '50Gi',
-    accessModes: ['ReadWriteOnce'],
-    reclaimPolicy: 'Delete',
-    status: 'healthy',
-    claim: 'backend/api-data-claim',
-    storageClass: 'premium-rwo',
-    age: '2d',
-  },
-  {
-    id: 'pv-3',
-    name: 'pv-shared-001',
-    capacity: '100Gi',
+    name: 'data-volume-2',
+    capacity: '5Gi',
     accessModes: ['ReadWriteMany'],
-    reclaimPolicy: 'Retain',
-    status: 'healthy',
-    claim: 'default/shared-files-claim',
-    storageClass: 'standard-rwx',
-    age: '8d',
-  },
-  {
-    id: 'pv-4',
-    name: 'pv-elastic-001',
-    capacity: '200Gi',
-    accessModes: ['ReadWriteOnce'],
     reclaimPolicy: 'Delete',
-    status: 'warning',
-    claim: 'monitoring/elastic-data-claim',
-    storageClass: 'premium-rwo',
-    age: '1d',
-  },
-];
-
-const persistentVolumeClaims = [
-  {
-    id: 'pvc-1',
-    name: 'postgres-data-claim',
-    namespace: 'default',
     status: 'healthy',
-    volume: 'pv-data-001',
-    capacity: '10Gi',
-    accessModes: ['ReadWriteOnce'],
-    storageClass: 'standard',
+    claim: 'app/shared-claim',
+    storageClass: 'fast',
     age: '5d',
   },
   {
-    id: 'pvc-2',
-    name: 'api-data-claim',
-    namespace: 'backend',
+    id: 'pv-3',
+    name: 'backup-volume',
+    capacity: '20Gi',
+    accessModes: ['ReadOnlyMany'],
+    reclaimPolicy: 'Retain',
     status: 'healthy',
-    volume: 'pv-data-002',
-    capacity: '50Gi',
+    claim: 'backup/backup-claim',
+    storageClass: 'standard',
+    age: '15d',
+  },
+  {
+    id: 'pv-4',
+    name: 'logs-volume',
+    capacity: '2Gi',
     accessModes: ['ReadWriteOnce'],
-    storageClass: 'premium-rwo',
-    age: '2d',
-  },
-  {
-    id: 'pvc-3',
-    name: 'shared-files-claim',
-    namespace: 'default',
-    status: 'healthy',
-    volume: 'pv-shared-001',
-    capacity: '100Gi',
-    accessModes: ['ReadWriteMany'],
-    storageClass: 'standard-rwx',
-    age: '8d',
-  },
-  {
-    id: 'pvc-4',
-    name: 'elastic-data-claim',
-    namespace: 'monitoring',
+    reclaimPolicy: 'Delete',
     status: 'warning',
-    volume: 'pv-elastic-001',
-    capacity: '200Gi',
-    accessModes: ['ReadWriteOnce'],
-    storageClass: 'premium-rwo',
-    age: '1d',
+    claim: 'monitoring/logs-claim',
+    storageClass: 'standard',
+    age: '7d',
   },
 ];
 
-type StorageTab = 'overview' | 'volumes' | 'claims' | 'classes';
+const storageClassesData = [
+  {
+    id: 'sc-1',
+    name: 'standard',
+    provisioner: 'kubernetes.io/aws-ebs',
+    reclaimPolicy: 'Delete',
+    volumeBindingMode: 'Immediate',
+    allowVolumeExpansion: true,
+    age: '30d',
+  },
+  {
+    id: 'sc-2',
+    name: 'fast',
+    provisioner: 'kubernetes.io/aws-ebs',
+    reclaimPolicy: 'Delete',
+    volumeBindingMode: 'Immediate',
+    allowVolumeExpansion: true,
+    age: '30d',
+  },
+  {
+    id: 'sc-3',
+    name: 'standard-gce',
+    provisioner: 'kubernetes.io/gce-pd',
+    reclaimPolicy: 'Delete',
+    volumeBindingMode: 'WaitForFirstConsumer',
+    allowVolumeExpansion: false,
+    age: '15d',
+  },
+];
 
 const Storage = () => {
-  const [activeTab, setActiveTab] = useState<StorageTab>('overview');
+  const [activeTab, setActiveTab] = useState<'volumes' | 'classes'>('volumes');
+  const [selectedItem, setSelectedItem] = useState<string | null>(null);
 
-  const renderTab = () => {
-    switch (activeTab) {
-      case 'overview':
-        return (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <TransitionWrapper animation="slide-up" delay={100}>
-              <MetricCard
-                title="Total Storage"
-                value="360 Gi"
-                subtitle="Allocated across all volumes"
-                icon={<Database size={20} />}
-                trend={{ value: 12, direction: 'up' }}
-              />
-            </TransitionWrapper>
-            <TransitionWrapper animation="slide-up" delay={150}>
-              <MetricCard
-                title="Persistent Volumes"
-                value={persistentVolumes.length}
-                subtitle="Active volumes"
-                icon={<HardDrive size={20} />}
-              />
-            </TransitionWrapper>
-            <TransitionWrapper animation="slide-up" delay={200}>
-              <MetricCard
-                title="Storage Classes"
-                value={storageClasses.length}
-                subtitle="Available provisioners"
-                icon={<Layers size={20} />}
-              />
-            </TransitionWrapper>
-            
-            <TransitionWrapper animation="slide-up" delay={250} className="md:col-span-3">
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-lg">Recent PVCs</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="overflow-x-auto">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Name</TableHead>
-                          <TableHead>Namespace</TableHead>
-                          <TableHead>Status</TableHead>
-                          <TableHead>Volume</TableHead>
-                          <TableHead>Capacity</TableHead>
-                          <TableHead>Age</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {persistentVolumeClaims.slice(0, 3).map((claim) => (
-                          <TableRow key={claim.id}>
-                            <TableCell className="font-medium">{claim.name}</TableCell>
-                            <TableCell>{claim.namespace}</TableCell>
-                            <TableCell>
-                              <StatusBadge status={claim.status as any}>
-                                {claim.status.charAt(0).toUpperCase() + claim.status.slice(1)}
-                              </StatusBadge>
-                            </TableCell>
-                            <TableCell>{claim.volume}</TableCell>
-                            <TableCell>{claim.capacity}</TableCell>
-                            <TableCell>{claim.age}</TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                </CardContent>
-              </Card>
-            </TransitionWrapper>
-          </div>
-        );
+  return (
+    <PageLayout
+      title="Storage" 
+      description="Manage persistent volumes and storage classes in your Kubernetes clusters."
+    >
+      <div className="flex justify-between items-center mb-6">
+        <div className="flex items-center space-x-2">
+          <button
+            className={`py-1.5 px-3 rounded-lg flex items-center text-sm font-medium ${
+              activeTab === 'volumes' 
+                ? 'bg-k8s-blue text-white shadow-sm' 
+                : 'bg-white border border-k8s-gray-200 hover:bg-k8s-gray-50'
+            }`}
+            onClick={() => {
+              setActiveTab('volumes');
+              setSelectedItem(null);
+            }}
+          >
+            Persistent Volumes
+          </button>
+          <button
+            className={`py-1.5 px-3 rounded-lg flex items-center text-sm font-medium ${
+              activeTab === 'classes' 
+                ? 'bg-k8s-blue text-white shadow-sm' 
+                : 'bg-white border border-k8s-gray-200 hover:bg-k8s-gray-50'
+            }`}
+            onClick={() => {
+              setActiveTab('classes');
+              setSelectedItem(null);
+            }}
+          >
+            Storage Classes
+          </button>
+        </div>
+        <div className="flex items-center space-x-2">
+          <button className="hover-lift py-1.5 px-3 rounded-lg flex items-center text-sm font-medium bg-k8s-blue text-white shadow-sm">
+            <Plus size={16} className="mr-1.5" />
+            <span>Create {activeTab === 'volumes' ? 'Volume' : 'Storage Class'}</span>
+          </button>
+          <button className="p-2 rounded-lg hover:bg-k8s-gray-100 text-k8s-gray-600">
+            <RefreshCw size={16} />
+          </button>
+        </div>
+      </div>
 
-      case 'volumes':
-        return (
-          <TransitionWrapper animation="fade">
+      {activeTab === 'volumes' && (
+        <>
+          <TransitionWrapper animation="fade" delay={100}>
             <Card>
               <CardHeader className="pb-3">
-                <div className="flex justify-between items-center">
-                  <CardTitle className="text-lg">Persistent Volumes</CardTitle>
-                  <button className="hover-lift py-1.5 px-3 rounded-lg flex items-center text-sm font-medium bg-k8s-blue text-white shadow-sm">
-                    <Plus size={16} className="mr-1.5" />
-                    <span>Create PV</span>
-                  </button>
-                </div>
+                <CardTitle className="text-lg">Persistent Volumes</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="overflow-x-auto">
@@ -232,81 +149,39 @@ const Storage = () => {
                         <TableHead>Name</TableHead>
                         <TableHead>Capacity</TableHead>
                         <TableHead>Access Modes</TableHead>
-                        <TableHead>Reclaim Policy</TableHead>
                         <TableHead>Status</TableHead>
                         <TableHead>Claim</TableHead>
                         <TableHead>Storage Class</TableHead>
                         <TableHead>Age</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {persistentVolumes.map((volume) => (
-                        <TableRow key={volume.id}>
+                      {persistentVolumesData.map((volume) => (
+                        <TableRow 
+                          key={volume.id}
+                          className="cursor-pointer hover:bg-k8s-gray-50"
+                          onClick={() => setSelectedItem(volume.id === selectedItem ? null : volume.id)}
+                        >
                           <TableCell className="font-medium">{volume.name}</TableCell>
                           <TableCell>{volume.capacity}</TableCell>
                           <TableCell>{volume.accessModes.join(', ')}</TableCell>
-                          <TableCell>{volume.reclaimPolicy}</TableCell>
                           <TableCell>
-                            <StatusBadge status={volume.status as any}>
-                              {volume.status.charAt(0).toUpperCase() + volume.status.slice(1)}
-                            </StatusBadge>
+                            <StatusBadge status={volume.status as 'healthy' | 'warning' | 'critical' | 'neutral' | 'pending'} text={volume.status.charAt(0).toUpperCase() + volume.status.slice(1)} />
                           </TableCell>
                           <TableCell>{volume.claim}</TableCell>
                           <TableCell>{volume.storageClass}</TableCell>
                           <TableCell>{volume.age}</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              </CardContent>
-            </Card>
-          </TransitionWrapper>
-        );
-
-      case 'claims':
-        return (
-          <TransitionWrapper animation="fade">
-            <Card>
-              <CardHeader className="pb-3">
-                <div className="flex justify-between items-center">
-                  <CardTitle className="text-lg">Persistent Volume Claims</CardTitle>
-                  <button className="hover-lift py-1.5 px-3 rounded-lg flex items-center text-sm font-medium bg-k8s-blue text-white shadow-sm">
-                    <Plus size={16} className="mr-1.5" />
-                    <span>Create PVC</span>
-                  </button>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Name</TableHead>
-                        <TableHead>Namespace</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Volume</TableHead>
-                        <TableHead>Capacity</TableHead>
-                        <TableHead>Access Modes</TableHead>
-                        <TableHead>Storage Class</TableHead>
-                        <TableHead>Age</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {persistentVolumeClaims.map((claim) => (
-                        <TableRow key={claim.id}>
-                          <TableCell className="font-medium">{claim.name}</TableCell>
-                          <TableCell>{claim.namespace}</TableCell>
-                          <TableCell>
-                            <StatusBadge status={claim.status as any}>
-                              {claim.status.charAt(0).toUpperCase() + claim.status.slice(1)}
-                            </StatusBadge>
+                          <TableCell className="text-right">
+                            <div className="flex justify-end space-x-2">
+                              <button className="p-1 rounded hover:bg-k8s-gray-100">
+                                <Edit size={14} className="text-k8s-gray-500" />
+                              </button>
+                              <button className="p-1 rounded hover:bg-k8s-gray-100">
+                                <MoreHorizontal size={14} className="text-k8s-gray-500" />
+                              </button>
+                            </div>
                           </TableCell>
-                          <TableCell>{claim.volume}</TableCell>
-                          <TableCell>{claim.capacity}</TableCell>
-                          <TableCell>{claim.accessModes.join(', ')}</TableCell>
-                          <TableCell>{claim.storageClass}</TableCell>
-                          <TableCell>{claim.age}</TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
@@ -315,20 +190,92 @@ const Storage = () => {
               </CardContent>
             </Card>
           </TransitionWrapper>
-        );
 
-      case 'classes':
-        return (
-          <TransitionWrapper animation="fade">
+          {selectedItem && activeTab === 'volumes' && (
+            <TransitionWrapper animation="slide-up" delay={100} className="mt-6">
+              <Card>
+                <CardHeader className="pb-3">
+                  <div className="flex justify-between items-center">
+                    <CardTitle className="text-lg">
+                      Volume Details
+                    </CardTitle>
+                    <div className="flex space-x-2">
+                      <button className="p-1.5 rounded hover:bg-k8s-gray-100">
+                        <Edit size={14} className="text-k8s-gray-500" />
+                      </button>
+                      <button className="p-1.5 rounded hover:bg-k8s-gray-100">
+                        <Trash2 size={14} className="text-k8s-red" />
+                      </button>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  {(() => {
+                    const volume = persistentVolumesData.find(v => v.id === selectedItem);
+                    if (!volume) return null;
+                    
+                    return (
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <h3 className="text-sm font-medium mb-2">Basic Information</h3>
+                          <div className="space-y-2">
+                            <div className="flex justify-between py-1 border-b border-k8s-gray-100">
+                              <span className="text-sm text-k8s-gray-500">Name</span>
+                              <span className="text-sm font-medium">{volume.name}</span>
+                            </div>
+                            <div className="flex justify-between py-1 border-b border-k8s-gray-100">
+                              <span className="text-sm text-k8s-gray-500">Capacity</span>
+                              <span className="text-sm">{volume.capacity}</span>
+                            </div>
+                            <div className="flex justify-between py-1 border-b border-k8s-gray-100">
+                              <span className="text-sm text-k8s-gray-500">Status</span>
+                              <span className="text-sm">
+                                <StatusBadge status={volume.status as 'healthy' | 'warning' | 'critical' | 'neutral' | 'pending'} text={volume.status.charAt(0).toUpperCase() + volume.status.slice(1)} />
+                              </span>
+                            </div>
+                            <div className="flex justify-between py-1 border-b border-k8s-gray-100">
+                              <span className="text-sm text-k8s-gray-500">Age</span>
+                              <span className="text-sm">{volume.age}</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div>
+                          <h3 className="text-sm font-medium mb-2">Storage Details</h3>
+                          <div className="space-y-2">
+                            <div className="flex justify-between py-1 border-b border-k8s-gray-100">
+                              <span className="text-sm text-k8s-gray-500">Access Modes</span>
+                              <span className="text-sm">{volume.accessModes.join(', ')}</span>
+                            </div>
+                            <div className="flex justify-between py-1 border-b border-k8s-gray-100">
+                              <span className="text-sm text-k8s-gray-500">Reclaim Policy</span>
+                              <span className="text-sm">{volume.reclaimPolicy}</span>
+                            </div>
+                            <div className="flex justify-between py-1 border-b border-k8s-gray-100">
+                              <span className="text-sm text-k8s-gray-500">Storage Class</span>
+                              <span className="text-sm">{volume.storageClass}</span>
+                            </div>
+                            <div className="flex justify-between py-1 border-b border-k8s-gray-100">
+                              <span className="text-sm text-k8s-gray-500">Claim</span>
+                              <span className="text-sm">{volume.claim}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </CardContent>
+              </Card>
+            </TransitionWrapper>
+          )}
+        </>
+      )}
+
+      {activeTab === 'classes' && (
+        <>
+          <TransitionWrapper animation="fade" delay={100}>
             <Card>
               <CardHeader className="pb-3">
-                <div className="flex justify-between items-center">
-                  <CardTitle className="text-lg">Storage Classes</CardTitle>
-                  <button className="hover-lift py-1.5 px-3 rounded-lg flex items-center text-sm font-medium bg-k8s-blue text-white shadow-sm">
-                    <Plus size={16} className="mr-1.5" />
-                    <span>Create Storage Class</span>
-                  </button>
-                </div>
+                <CardTitle className="text-lg">Storage Classes</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="overflow-x-auto">
@@ -339,19 +286,34 @@ const Storage = () => {
                         <TableHead>Provisioner</TableHead>
                         <TableHead>Reclaim Policy</TableHead>
                         <TableHead>Volume Binding Mode</TableHead>
-                        <TableHead>Default</TableHead>
+                        <TableHead>Allow Volume Expansion</TableHead>
                         <TableHead>Age</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {storageClasses.map((sc) => (
-                        <TableRow key={sc.id}>
-                          <TableCell className="font-medium">{sc.name}</TableCell>
-                          <TableCell>{sc.provisioner}</TableCell>
-                          <TableCell>{sc.reclaimPolicy}</TableCell>
-                          <TableCell>{sc.volumeBindingMode}</TableCell>
-                          <TableCell>{sc.isDefault ? 'Yes' : 'No'}</TableCell>
-                          <TableCell>{sc.age}</TableCell>
+                      {storageClassesData.map((storageClass) => (
+                        <TableRow 
+                          key={storageClass.id}
+                          className="cursor-pointer hover:bg-k8s-gray-50"
+                          onClick={() => setSelectedItem(storageClass.id === selectedItem ? null : storageClass.id)}
+                        >
+                          <TableCell className="font-medium">{storageClass.name}</TableCell>
+                          <TableCell>{storageClass.provisioner}</TableCell>
+                          <TableCell>{storageClass.reclaimPolicy}</TableCell>
+                          <TableCell>{storageClass.volumeBindingMode}</TableCell>
+                          <TableCell>{storageClass.allowVolumeExpansion ? 'Yes' : 'No'}</TableCell>
+                          <TableCell>{storageClass.age}</TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex justify-end space-x-2">
+                              <button className="p-1 rounded hover:bg-k8s-gray-100">
+                                <Edit size={14} className="text-k8s-gray-500" />
+                              </button>
+                              <button className="p-1 rounded hover:bg-k8s-gray-100">
+                                <MoreHorizontal size={14} className="text-k8s-gray-500" />
+                              </button>
+                            </div>
+                          </TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
@@ -360,42 +322,68 @@ const Storage = () => {
               </CardContent>
             </Card>
           </TransitionWrapper>
-        );
 
-      default:
-        return null;
-    }
-  };
-
-  return (
-    <PageLayout 
-      title="Storage" 
-      description="Manage persistent storage resources in your Kubernetes clusters."
-    >
-      <div className="flex justify-between items-center mb-6">
-        <div className="flex items-center">
-          <div className="flex border border-k8s-gray-200 rounded-lg bg-white overflow-hidden">
-            {(['overview', 'volumes', 'claims', 'classes'] as StorageTab[]).map((tab) => (
-              <button
-                key={tab}
-                className={`py-2 px-4 text-sm ${
-                  activeTab === tab
-                    ? 'bg-k8s-blue text-white'
-                    : 'text-k8s-gray-600 hover:bg-k8s-gray-50'
-                }`}
-                onClick={() => setActiveTab(tab)}
-              >
-                {tab.charAt(0).toUpperCase() + tab.slice(1)}
-              </button>
-            ))}
-          </div>
-        </div>
-        <button className="p-2 rounded-lg hover:bg-k8s-gray-100 text-k8s-gray-600">
-          <RefreshCw size={16} />
-        </button>
-      </div>
-
-      {renderTab()}
+          {selectedItem && activeTab === 'classes' && (
+            <TransitionWrapper animation="slide-up" delay={100} className="mt-6">
+              <Card>
+                <CardHeader className="pb-3">
+                  <div className="flex justify-between items-center">
+                    <CardTitle className="text-lg">
+                      Storage Class Details
+                    </CardTitle>
+                    <div className="flex space-x-2">
+                      <button className="p-1.5 rounded hover:bg-k8s-gray-100">
+                        <Edit size={14} className="text-k8s-gray-500" />
+                      </button>
+                      <button className="p-1.5 rounded hover:bg-k8s-gray-100">
+                        <Trash2 size={14} className="text-k8s-red" />
+                      </button>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  {(() => {
+                    const storageClass = storageClassesData.find(sc => sc.id === selectedItem);
+                    if (!storageClass) return null;
+                    
+                    return (
+                      <div>
+                        <h3 className="text-sm font-medium mb-2">Storage Class Configuration</h3>
+                        <div className="space-y-2">
+                          <div className="flex justify-between py-1 border-b border-k8s-gray-100">
+                            <span className="text-sm text-k8s-gray-500">Name</span>
+                            <span className="text-sm font-medium">{storageClass.name}</span>
+                          </div>
+                          <div className="flex justify-between py-1 border-b border-k8s-gray-100">
+                            <span className="text-sm text-k8s-gray-500">Provisioner</span>
+                            <span className="text-sm">{storageClass.provisioner}</span>
+                          </div>
+                          <div className="flex justify-between py-1 border-b border-k8s-gray-100">
+                            <span className="text-sm text-k8s-gray-500">Reclaim Policy</span>
+                            <span className="text-sm">{storageClass.reclaimPolicy}</span>
+                          </div>
+                          <div className="flex justify-between py-1 border-b border-k8s-gray-100">
+                            <span className="text-sm text-k8s-gray-500">Volume Binding Mode</span>
+                            <span className="text-sm">{storageClass.volumeBindingMode}</span>
+                          </div>
+                          <div className="flex justify-between py-1 border-b border-k8s-gray-100">
+                            <span className="text-sm text-k8s-gray-500">Allow Volume Expansion</span>
+                            <span className="text-sm">{storageClass.allowVolumeExpansion ? 'Yes' : 'No'}</span>
+                          </div>
+                          <div className="flex justify-between py-1 border-b border-k8s-gray-100">
+                            <span className="text-sm text-k8s-gray-500">Age</span>
+                            <span className="text-sm">{storageClass.age}</span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </CardContent>
+              </Card>
+            </TransitionWrapper>
+          )}
+        </>
+      )}
     </PageLayout>
   );
 };

@@ -5,108 +5,74 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
 import TransitionWrapper from '@/components/ui/TransitionWrapper';
 import StatusBadge from '@/components/ui/StatusBadge';
-import { Plus, Filter, RefreshCw, ExternalLink, ArrowUpDown } from 'lucide-react';
+import { Plus, Filter, RefreshCw, MoreHorizontal, Edit, ExternalLink, Trash2 } from 'lucide-react';
 
-// Sample service data
-const serviceData = [
+// Sample services data
+const servicesData = [
   {
     id: 'svc-1',
-    name: 'frontend-web-svc',
+    name: 'frontend-service',
     namespace: 'default',
     type: 'LoadBalancer',
-    clusterIp: '10.96.134.156',
-    externalIp: '34.102.136.180',
+    clusterIP: '10.96.0.1',
+    externalIP: '34.123.45.67',
     ports: '80:30080/TCP',
     status: 'healthy',
     age: '5d',
-    selector: { app: 'frontend', tier: 'web' },
   },
   {
     id: 'svc-2',
-    name: 'backend-api-svc',
+    name: 'backend-api',
     namespace: 'backend',
     type: 'ClusterIP',
-    clusterIp: '10.96.167.218',
-    externalIp: null,
-    ports: '8080:30081/TCP',
+    clusterIP: '10.96.0.2',
+    externalIP: '-',
+    ports: '8080:32080/TCP',
     status: 'healthy',
     age: '2d',
-    selector: { app: 'backend', tier: 'api' },
   },
   {
     id: 'svc-3',
-    name: 'redis-cache-svc',
+    name: 'redis-cache',
     namespace: 'database',
     type: 'ClusterIP',
-    clusterIp: '10.96.44.125',
-    externalIp: null,
-    ports: '6379:32291/TCP',
+    clusterIP: '10.96.0.3',
+    externalIP: '-',
+    ports: '6379:31079/TCP',
     status: 'healthy',
     age: '8d',
-    selector: { app: 'redis', tier: 'cache' },
   },
   {
     id: 'svc-4',
-    name: 'metrics-collector-svc',
+    name: 'metrics-service',
     namespace: 'monitoring',
     type: 'NodePort',
-    clusterIp: '10.96.189.56',
-    externalIp: null,
-    ports: '9090:31090/TCP',
-    status: 'healthy',
+    clusterIP: '10.96.0.4',
+    externalIP: '-',
+    ports: '9090:30090/TCP',
+    status: 'warning',
     age: '1d',
-    selector: { app: 'metrics', tier: 'monitoring' },
   },
   {
     id: 'svc-5',
-    name: 'auth-service-svc',
+    name: 'auth-service',
     namespace: 'security',
     type: 'LoadBalancer',
-    clusterIp: '10.96.212.78',
-    externalIp: '35.188.97.145',
+    clusterIP: '10.96.0.5',
+    externalIP: '34.123.45.68',
     ports: '443:30443/TCP',
     status: 'warning',
     age: '4d',
-    selector: { app: 'auth', tier: 'security' },
   },
 ];
 
 const Services = () => {
-  const [sortField, setSortField] = useState('name');
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [selectedService, setSelectedService] = useState<string | null>(null);
 
-  const handleSort = (field: string) => {
-    if (field === sortField) {
-      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortField(field);
-      setSortDirection('asc');
-    }
-  };
-
-  const sortedServices = [...serviceData].sort((a, b) => {
-    const aValue = a[sortField as keyof typeof a];
-    const bValue = b[sortField as keyof typeof b];
-    
-    if (aValue === null) return sortDirection === 'asc' ? 1 : -1;
-    if (bValue === null) return sortDirection === 'asc' ? -1 : 1;
-    
-    if (typeof aValue === 'string' && typeof bValue === 'string') {
-      return sortDirection === 'asc' 
-        ? aValue.localeCompare(bValue) 
-        : bValue.localeCompare(aValue);
-    }
-    
-    return sortDirection === 'asc' 
-      ? (aValue > bValue ? 1 : -1) 
-      : (aValue < bValue ? 1 : -1);
-  });
-
   return (
-    <PageLayout 
+    <PageLayout
       title="Services" 
-      description="Manage Kubernetes services that enable communication between application components."
+      description="Manage and monitor Kubernetes services across your clusters."
     >
       <div className="flex justify-between items-center mb-6">
         <div className="flex items-center space-x-2">
@@ -127,87 +93,54 @@ const Services = () => {
       <TransitionWrapper animation="fade" delay={100}>
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-lg">Services</CardTitle>
+            <CardTitle className="text-lg">All Services</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead 
-                      className="cursor-pointer"
-                      onClick={() => handleSort('name')}
-                    >
-                      <div className="flex items-center">
-                        Name
-                        {sortField === 'name' && (
-                          <ArrowUpDown size={14} className="ml-1" />
-                        )}
-                      </div>
-                    </TableHead>
-                    <TableHead 
-                      className="cursor-pointer"
-                      onClick={() => handleSort('type')}
-                    >
-                      <div className="flex items-center">
-                        Type
-                        {sortField === 'type' && (
-                          <ArrowUpDown size={14} className="ml-1" />
-                        )}
-                      </div>
-                    </TableHead>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Namespace</TableHead>
+                    <TableHead>Type</TableHead>
                     <TableHead>Cluster IP</TableHead>
                     <TableHead>External IP</TableHead>
                     <TableHead>Ports</TableHead>
-                    <TableHead 
-                      className="cursor-pointer"
-                      onClick={() => handleSort('status')}
-                    >
-                      <div className="flex items-center">
-                        Status
-                        {sortField === 'status' && (
-                          <ArrowUpDown size={14} className="ml-1" />
-                        )}
-                      </div>
-                    </TableHead>
-                    <TableHead 
-                      className="cursor-pointer"
-                      onClick={() => handleSort('age')}
-                    >
-                      <div className="flex items-center">
-                        Age
-                        {sortField === 'age' && (
-                          <ArrowUpDown size={14} className="ml-1" />
-                        )}
-                      </div>
-                    </TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {sortedServices.map((service) => (
+                  {servicesData.map((service) => (
                     <TableRow 
                       key={service.id}
                       className="cursor-pointer hover:bg-k8s-gray-50"
                       onClick={() => setSelectedService(service.id === selectedService ? null : service.id)}
                     >
-                      <TableCell className="font-medium">
-                        <div className="flex items-center">
-                          {service.name}
-                          {service.externalIp && (
-                            <ExternalLink size={14} className="ml-2 text-k8s-gray-400" />
-                          )}
-                        </div>
-                      </TableCell>
+                      <TableCell className="font-medium">{service.name}</TableCell>
+                      <TableCell>{service.namespace}</TableCell>
                       <TableCell>{service.type}</TableCell>
-                      <TableCell>{service.clusterIp}</TableCell>
-                      <TableCell>{service.externalIp || '-'}</TableCell>
+                      <TableCell>{service.clusterIP}</TableCell>
+                      <TableCell>{service.externalIP}</TableCell>
                       <TableCell>{service.ports}</TableCell>
                       <TableCell>
-                        <StatusBadge status={service.status as any}>
-                          {service.status.charAt(0).toUpperCase() + service.status.slice(1)}
-                        </StatusBadge>
+                        <StatusBadge status={service.status as 'healthy' | 'warning' | 'critical' | 'neutral' | 'pending'} text={service.status.charAt(0).toUpperCase() + service.status.slice(1)} />
                       </TableCell>
-                      <TableCell>{service.age}</TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end space-x-2">
+                          {service.externalIP !== '-' && (
+                            <button className="p-1 rounded hover:bg-k8s-gray-100">
+                              <ExternalLink size={14} className="text-k8s-gray-500" />
+                            </button>
+                          )}
+                          <button className="p-1 rounded hover:bg-k8s-gray-100">
+                            <Edit size={14} className="text-k8s-gray-500" />
+                          </button>
+                          <button className="p-1 rounded hover:bg-k8s-gray-100">
+                            <MoreHorizontal size={14} className="text-k8s-gray-500" />
+                          </button>
+                        </div>
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -221,19 +154,29 @@ const Services = () => {
         <TransitionWrapper animation="slide-up" delay={100} className="mt-6">
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-lg">
-                Service Details
-              </CardTitle>
+              <div className="flex justify-between items-center">
+                <CardTitle className="text-lg">
+                  Service Details
+                </CardTitle>
+                <div className="flex space-x-2">
+                  <button className="p-1.5 rounded hover:bg-k8s-gray-100">
+                    <Edit size={14} className="text-k8s-gray-500" />
+                  </button>
+                  <button className="p-1.5 rounded hover:bg-k8s-gray-100">
+                    <Trash2 size={14} className="text-k8s-red" />
+                  </button>
+                </div>
+              </div>
             </CardHeader>
             <CardContent>
               {(() => {
-                const service = serviceData.find(s => s.id === selectedService);
+                const service = servicesData.find(s => s.id === selectedService);
                 if (!service) return null;
                 
                 return (
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <h3 className="text-sm font-medium mb-2">Service Info</h3>
+                      <h3 className="text-sm font-medium mb-2">Basic Information</h3>
                       <div className="space-y-2">
                         <div className="flex justify-between py-1 border-b border-k8s-gray-100">
                           <span className="text-sm text-k8s-gray-500">Name</span>
@@ -248,29 +191,32 @@ const Services = () => {
                           <span className="text-sm">{service.type}</span>
                         </div>
                         <div className="flex justify-between py-1 border-b border-k8s-gray-100">
-                          <span className="text-sm text-k8s-gray-500">Cluster IP</span>
-                          <span className="text-sm">{service.clusterIp}</span>
-                        </div>
-                        {service.externalIp && (
-                          <div className="flex justify-between py-1 border-b border-k8s-gray-100">
-                            <span className="text-sm text-k8s-gray-500">External IP</span>
-                            <span className="text-sm">{service.externalIp}</span>
-                          </div>
-                        )}
-                        <div className="flex justify-between py-1 border-b border-k8s-gray-100">
-                          <span className="text-sm text-k8s-gray-500">Ports</span>
-                          <span className="text-sm">{service.ports}</span>
+                          <span className="text-sm text-k8s-gray-500">Age</span>
+                          <span className="text-sm">{service.age}</span>
                         </div>
                       </div>
                     </div>
                     <div>
-                      <h3 className="text-sm font-medium mb-2">Selectors</h3>
-                      <div className="flex flex-wrap gap-2">
-                        {Object.entries(service.selector).map(([key, value]) => (
-                          <div key={key} className="px-2 py-1 bg-k8s-gray-100 rounded text-xs">
-                            {key}: {value}
-                          </div>
-                        ))}
+                      <h3 className="text-sm font-medium mb-2">Networking</h3>
+                      <div className="space-y-2">
+                        <div className="flex justify-between py-1 border-b border-k8s-gray-100">
+                          <span className="text-sm text-k8s-gray-500">Cluster IP</span>
+                          <span className="text-sm">{service.clusterIP}</span>
+                        </div>
+                        <div className="flex justify-between py-1 border-b border-k8s-gray-100">
+                          <span className="text-sm text-k8s-gray-500">External IP</span>
+                          <span className="text-sm">{service.externalIP}</span>
+                        </div>
+                        <div className="flex justify-between py-1 border-b border-k8s-gray-100">
+                          <span className="text-sm text-k8s-gray-500">Ports</span>
+                          <span className="text-sm">{service.ports}</span>
+                        </div>
+                        <div className="flex justify-between py-1 border-b border-k8s-gray-100">
+                          <span className="text-sm text-k8s-gray-500">Status</span>
+                          <span className="text-sm">
+                            <StatusBadge status={service.status as 'healthy' | 'warning' | 'critical' | 'neutral' | 'pending'} text={service.status.charAt(0).toUpperCase() + service.status.slice(1)} />
+                          </span>
+                        </div>
                       </div>
                     </div>
                   </div>
